@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
+import com.blxt.xml2.unit.QXmlTools;
+
 public class XmlMain2 {
 
 	public static void main(String[] args) {
@@ -19,8 +21,7 @@ public class XmlMain2 {
 	      return;
 	    }
 	    
-	    XmlAna xmlAna = new XmlAna();
-	    xmlAna.init(mainContent);
+	    QElement html = QXmlTools.init(mainContent);
 	    
 	}
 	

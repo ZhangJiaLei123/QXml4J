@@ -8,35 +8,33 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-public class Element {
-	public String content;
-	public String dataStr;
-	int rankCount = 0;
-	public String lable = null;
-	public String lableId = null;
-	public String lableClass = null;
-	private List<String> note = null;
-	private Map<String, Object> datas = null;
-	private String text = null;
 
-	public List<Element> subElement = new ArrayList<Element>();
+/**
+ * 快速xml解析工具的实体类,自动排版,可重写编辑
+ * @author MI
+ *
+ */
+public class QElement {
+	protected int rankCount = 0;  				//< 当前节点层次
+	protected String lable = null;				//< 节点标签
+	protected String lableId = null;        	//< 节点ID
+	protected String lableClass = null;     	//< 节点class
+	protected String note = null;           	//< 节点注释
+	protected String text = null;           	//< 节点文本
+	protected Map<String, Object> datas = null; //< 节点键值对
+	protected List<QElement> subElements = new ArrayList<QElement>(); // 子节点
 
-	public Element(int rankCount) {
+	public QElement(int rankCount) {
 		this.rankCount = rankCount;
-		// this.indexStar = indexStar;
 	};
 
-	public Element(String content) {
-		// this.content = content;
+	public QElement(int rankCount, String lable) {
+		this.rankCount = rankCount;
+		this.lable = lable;
 	};
 
-	public void init() {
-//		lable = getlable(dataStr);
-//		datas = getDatas(dataStr);
-//		getDefaultId(datas);
-	}
 
-	private String getlable(String strContent) {
+	private String makeLable(String strContent) {
 		if (strContent == null) {
 			return null;
 		}
@@ -57,7 +55,7 @@ public class Element {
 		return strContent.substring(0, index).trim();
 	}
 
-	private Map<String, Object> getDatas(String content) {
+	private Map<String, Object> makeDatas(String content) {
 		if (content == null) {
 			return null;
 		}
@@ -71,7 +69,7 @@ public class Element {
 			indexL--;
 		}
 		String dataStr = content.substring(index, indexL);
-		Map<String, Object> datas = anakeyValue(dataStr);
+		Map<String, Object> datas = makeValue(dataStr);
 
 		return datas;
 	}
@@ -82,7 +80,7 @@ public class Element {
 	 * @param content
 	 * @return
 	 */
-	public static Map<String, Object> anakeyValue(String content) {
+	private Map<String, Object> makeValue(String content) {
 		if ((content == null) || (content.length() <= 1)) {
 			return null;
 		}
@@ -114,7 +112,7 @@ public class Element {
 	/**
 	 * 获取默认id
 	 */
-	private String getDefaultId(Map<String, Object> datas) {
+	private String makeDefaultId(Map<String, Object> datas) {
 		if (datas != null) {
 			Object oId = datas.get("id");
 			if (oId != null) {
@@ -128,40 +126,111 @@ public class Element {
 		return null;
 	}
 
+	public void setDataStr(String dataStr) {
+		lable = makeLable(dataStr);
+		datas = makeDatas(dataStr);
+		makeDefaultId(datas);
+	}
+
+	public String getNote() {
+		return note;
+	}
+
+	public void setNote(String note) {
+		this.note = note;
+	}
+
+	public int getRankCount() {
+		return rankCount;
+	}
+
+	public String getLable() {
+		return lable;
+	}
+
+	public void setLable(String lable) {
+		this.lable = lable;
+	}
+
+	public String getLableId() {
+		return lableId;
+	}
+
+	public void setLableId(String lableId) {
+		this.lableId = lableId;
+	}
+
+	public String getLableClass() {
+		return lableClass;
+	}
+
+	public void setLableClass(String lableClass) {
+		this.lableClass = lableClass;
+	}
+
+	public Map<String, Object> getDatas() {
+		return datas;
+	}
+
+	public void setDatas(Map<String, Object> datas) {
+		this.datas = datas;
+	}
+
+	public List<QElement> getSubElement() {
+		return subElements;
+	}
+
+	public void addSubElement(QElement subElement) {
+		if(this.subElements == null) {
+			this.subElements = new ArrayList<QElement>();
+		}
+		this.subElements.add(subElement);
+	}
+	
+
+	public String getText() {
+		return text;
+	}
+
+	public void setText(String text) {
+		if(text != null) {
+			text = text.trim();
+		}
+		this.text = text;
+	}
+	
 	public String toString() {
 		String str = "";
 		if (this.note != null) {
-			for (String s : this.note) {
-				str = str + "\r\n" + s;
-			}
+			str += "\r\n" + note;
 		}
 		str = str + "\r\n<" + this.lable;
 		if (this.datas != null) {
 			str = str + " " + dataToString();
-			if ((this.text != null) || (this.subElement != null)) {
+			if ((this.text != null) || (this.subElements != null)) {
 				str = str + ">";
 			}
 		} else {
 			str += ">";
 		}
-		if (this.subElement != null) {
+		if (this.subElements != null) {
 			String strSub = "";
-			for (Element e : this.subElement) {
+			for (QElement e : this.subElements) {
 				String s = e.toString();
 				strSub = strSub + s.replace("\r\n", "\r\n\t");
 			}
 			str += strSub;
 		}
 		if (this.text != null) {
-			if (this.subElement != null && this.subElement.size() > 0) {
+			if (this.subElements != null && this.subElements.size() > 0) {
 				str += "\r\n\t";
 			}
 			str += this.text;
 		}
-		if ((this.subElement == null) && (this.text == null)) {
+		if ((this.subElements == null) && (this.text == null)) {
 			str = str + "/>";
 		} else {
-			if (this.subElement != null && this.subElement.size() > 0) {
+			if (this.subElements != null && this.subElements.size() > 0) {
 				str += "\r\n";
 			}
 			str += "</" + this.lable + ">";
@@ -169,18 +238,7 @@ public class Element {
 		return str;
 	}
 
-	public String subToString() {
-		String str = "";
-		if (this.subElement == null) {
-			return null;
-		}
-		for (Element e : this.subElement) {
-			str = str + e.toString();
-		}
-		return str.trim();
-	}
-
-	public String dataToString() {
+	private String dataToString() {
 		String str = "";
 		if (this.datas == null) {
 			return str;
@@ -194,28 +252,5 @@ public class Element {
 		return str.trim();
 	}
 
-	public void setContent(String content) {
-		this.content = content;
-	}
-
-	
-	
-	public String getText() {
-		return text;
-	}
-
-	public void setText(String text) {
-		if(text != null) {
-			text = text.trim();
-		}
-		this.text = text;
-	}
-
-	public void setDataStr(String dataStr) {
-		this.dataStr = dataStr;
-		lable = getlable(dataStr);
-		datas = getDatas(dataStr);
-		getDefaultId(datas);
-	}
 
 }
