@@ -1,4 +1,4 @@
-package com.blxt.xml2.unit;
+package com.blxt.qxml4j.unit;
 /**
  * 坐标类型
  * @author MI

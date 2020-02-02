@@ -1,4 +1,4 @@
-package com.blxt.xml2;
+package com.blxt.qxml4j;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,22 +8,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-
 /**
  * 快速xml解析工具的实体类,自动排版,可重写编辑
+ * 
  * @author MI
  *
  */
 public class QElement {
-	protected int rankCount = 0;  				//< 当前节点层次
-	protected String lable = null;				//< 节点标签
-	protected String lableId = null;        	//< 节点ID
-	protected String lableClass = null;     	//< 节点class
-	protected String note = null;           	//< 节点注释
-	protected String text = null;           	//< 节点文本
-	protected Map<String, Object> datas = null; //< 节点键值对
+	protected int rankCount = 0; // < 当前节点层次
+	protected String lable = null; // < 节点标签
+	protected String lableId = null; // < 节点ID
+	protected String lableClass = null; // < 节点class
+	protected String note = null; // < 节点注释
+	protected String text = null; // < 节点文本
+	protected Map<String, Object> datas = null; // < 节点键值对
 	protected List<QElement> subElements = new ArrayList<QElement>(); // 子节点
 
+	protected QElement res;
+	
 	public QElement(int rankCount) {
 		this.rankCount = rankCount;
 	};
@@ -33,6 +35,173 @@ public class QElement {
 		this.lable = lable;
 	};
 
+	/**
+	 * 获取键值对
+	 * 
+	 * @param key    key
+	 * @param defStr 默认值
+	 * @return
+	 */
+	public String getKeyvalue(String key, String defStr) {
+		if (this.datas == null) {
+			return defStr;
+		}
+		Object oClass = this.datas.get(key);
+		if (oClass != null) {
+			return oClass.toString();
+		}
+		return defStr;
+	}
+
+	public QElement findEleByLable(String lableName) {
+		if (this.subElements == null) {
+			return null;
+		}
+		for (QElement e : this.subElements) {
+			if (lableName.equals(e.lable)) {
+				return e;
+			}
+		}
+		return null;
+	}
+
+	public List<QElement> findElesByLable(String lableName, Boolean isDeep) {
+		if (this.subElements == null) {
+			return null;
+		}
+		List<QElement> res = new ArrayList<QElement>();
+		for (QElement e : this.subElements) {
+			if (lableName.equals(e.lable)) {
+				res.add(e);
+			} else if ((isDeep.booleanValue()) && (e.getSubElement() != null)) {
+				for (QElement se : e.getSubElement()) {
+					List<QElement> ses = se.findElesByLable(lableName, isDeep);
+					if (ses != null) {
+						res.addAll(ses);
+					}
+				}
+			}
+		}
+		return res;
+	}
+
+	public QElement findEleById(String id) {
+		if (this.subElements == null) {
+			return null;
+		}
+		for (QElement e : this.subElements) {
+			if (id.equals(e.lableId)) {
+				return e;
+			}
+		}
+		return null;
+	}
+
+	public List<QElement> findElesById(String id, Boolean isDeep) {
+		if (this.subElements == null) {
+			return null;
+		}
+		List<QElement> res = new ArrayList<QElement>();
+		for (QElement e : this.subElements) {
+			if (id.equals(e.lableId)) {
+				res.add(e);
+			} else if ((isDeep.booleanValue()) && (e.getSubElement() != null)) {
+				for (QElement se : e.getSubElement()) {
+					List<QElement> ses = se.findElesById(id, isDeep);
+					if (ses != null) {
+						res.addAll(ses);
+					}
+				}
+			}
+		}
+		return res;
+	}
+
+	/**
+	 *  递归查找
+	 * @param className
+	 * @return
+	 */
+	public QElement findEleByClass(String className) {
+		if(className.equals(lableClass)) {
+			res = this;
+			return this;
+		}
+		
+		if (this.subElements == null) {
+			return null;
+		}
+		
+		for (QElement e : this.subElements) {
+			if (e.findEleByClass(className) != null) {
+				res = e.res;
+				return e.res;
+			}
+		}
+		return null;
+	}
+
+	public List<QElement> findElesByClass(String className, Boolean isDeep) {
+		if (this.subElements == null) {
+			return null;
+		}
+		List<QElement> res = new ArrayList<QElement>();
+		for (QElement e : this.subElements) {
+			if (className.equals(e.lableClass)) {
+				res.add(e);
+			} else if ((isDeep.booleanValue()) && (e.getSubElement() != null)) {
+				for (QElement se : e.getSubElement()) {
+					List<QElement> ses = se.findElesByClass(className, isDeep);
+					if (ses != null) {
+						res.addAll(ses);
+					}
+				}
+			}
+		}
+		return res;
+	}
+
+	/**
+	 * 更具lable获取子节点
+	 * 
+	 * @param lable
+	 * @return
+	 */
+	public List<QElement> getSubElements(String lable) {
+		if (this.subElements == null) {
+			return null;
+		}
+
+		List<QElement> lsList = new ArrayList<>();
+
+		for (QElement element : this.subElements) { // 遍历标签，
+			if (lable.equals(element.lable)) {// 添加需要的lable
+				lsList.add(element);
+			}
+		}
+
+		return lsList;
+	}
+
+	/**
+	 * 更具lable获取子节点
+	 * 
+	 * @param lable
+	 * @return
+	 */
+	public QElement getSubElement(String lable) {
+		if (this.subElements == null) {
+			return null;
+		}
+
+		for (QElement element : this.subElements) { // 遍历标签，
+			if (lable.equals(element.lable)) {// 添加需要的lable
+				return element;
+			}
+		}
+
+		return null;
+	}
 
 	private String makeLable(String strContent) {
 		if (strContent == null) {
@@ -126,7 +295,7 @@ public class QElement {
 		return null;
 	}
 
-	public void setDataStr(String dataStr) {
+	public void makeData(String dataStr) {
 		lable = makeLable(dataStr);
 		datas = makeDatas(dataStr);
 		makeDefaultId(datas);
@@ -181,24 +350,33 @@ public class QElement {
 	}
 
 	public void addSubElement(QElement subElement) {
-		if(this.subElements == null) {
+		if (this.subElements == null) {
 			this.subElements = new ArrayList<QElement>();
 		}
 		this.subElements.add(subElement);
 	}
-	
 
 	public String getText() {
 		return text;
 	}
 
 	public void setText(String text) {
-		if(text != null) {
+		if (text != null) {
 			text = text.trim();
 		}
 		this.text = text;
 	}
 	
+	public void addText(String text) {
+		if (text != null) {
+			text = text.trim();
+		}
+		if(this.text == null) {
+			this.text = "";
+		}
+		this.text += text;
+	}
+
 	public String toString() {
 		String str = "";
 		if (this.note != null) {
@@ -251,6 +429,5 @@ public class QElement {
 		}
 		return str.trim();
 	}
-
 
 }

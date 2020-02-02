@@ -1,4 +1,4 @@
-package com.blxt.xml2.unit;
+package com.blxt.qxml4j.unit;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
-import com.blxt.xml2.QElement;
+import com.blxt.qxml4j.QElement;
 
 
 /**
@@ -15,11 +15,18 @@ import com.blxt.xml2.QElement;
  *
  */
 public class QXmlTools{
+	
+	// 预处理源码,排除不兼容的
+	private static String initContent(String content) {
+		return content.replaceAll("<br />", "\r\n");
+	}
+	
 	public static QElement init(String content) {
 		// 预处理源码,排除不兼容的
-		content = content.replaceAll("<br />", "\r\n");
+		content = initContent(content);
 		// 寻找标签位置
 		HashMap<Integer, Integer> indexs = findIndex(content);
+
 		// 预处理坐标
 		List<IndexType> indexTypes = getIndexTypes(indexs);
 
@@ -31,7 +38,6 @@ public class QXmlTools{
 		
 		int rankCount = 0; // 节点处理计数
 	
-		int indexContent = 0;
 		for(int i = 0; i < indexTypes.size(); i++) {
 			Integer key = indexTypes.get(i).index;
 			Integer type = indexTypes.get(i).type;
@@ -40,18 +46,28 @@ public class QXmlTools{
 				if(type == 1) {// 创建一个节点
 					rankCount++;
 					QElement  element = new QElement(rankCount);
-					if(root == null) { // 第一个节点为根节点
-						root = element;
-					}
 					// 获取标签内数据 如   <meta charset="utf-8"> 123456</meta>
 					int _tmpIdex = content.indexOf(">", indexStar);
 					String strData =  content.substring(indexStar, _tmpIdex);
-					element.setDataStr(strData);
-					indexContent = _tmpIdex;
-					//System.out.println("开始:" + element.lable);
-					if(!m_stack_Element.isEmpty()) {
-						m_stack_Element.lastElement().addSubElement(element);
+					element.makeData(strData);
+				
+					// 标签的文本内容
+					IndexType indexTypeE = getLastEndStart(indexTypes, i); // 当前结束
+					String _tmp = content.substring(_tmpIdex - 1, _tmpIdex + 1);
+					if(!_tmp.equals("/>"))
+				//	if(indexTypeE.type == -2)
+					{
+						IndexType indexTypeS = getLastStart(indexTypes, i + 1);// 下一个开始
+						//_tmpIdex += element.getLable().length() + 5;
+						if(indexTypeS != null && _tmpIdex < indexTypeS.index ) {
+							String strText =  content.substring(_tmpIdex, indexTypeS.index);
+							element.addText(strText);
+						}
 					}
+				
+					//System.out.println("开始:" + element.getLable() + " " + strText);
+	
+					m_stack_Element.lastElement().addSubElement(element);
 					// 压入栈
 					m_stack_Element.add(element);
 				}
@@ -65,24 +81,28 @@ public class QXmlTools{
 			else{ // 结束一个标签
 				rankCount--;
 				int indexFind = (Integer)key;
-				int indexS = indexContent + 1;
-		
-				if(indexFind > indexS) {
-					String _text = content.substring(indexS, indexFind);
-					m_stack_Element.lastElement().setText(_text);
-					indexContent += _text.length();
-				}
-				//System.out.println("结束:" + m_stack_Element.lastElement().lable);
-				indexContent += m_stack_Element.lastElement().getLable().length() + 4;
+				IndexType indexTypeS = getLastStart(indexTypes, i + 1);// 下一个开始
+				QElement element = m_stack_Element.lastElement();
+			
 				// 移出栈
 				m_stack_Element.pop();
+				
+				if(indexTypeS != null) {// 将剩余的追加到text
+					int indexS = content.indexOf("<", indexFind);
+					if(type == -2) {
+						indexFind += element.getLable().length() + 1;
+					}
+					String _text = content.substring( indexFind, indexS);
+					m_stack_Element.lastElement().addText(_text);
+				}
+				//System.out.println("结束:" + element.getLable() + " " + element.getLableClass());
 			}
 	
 		}
 		if(rankCount != 0) {
 			System.err.println("解析完成,但文档结构有异常" + rankCount);
 		}
-		System.out.println(root.getSubElement().get(0).toString());
+	
 		return root;
 	}
 	
@@ -115,29 +135,32 @@ public class QXmlTools{
 		HashMap<Integer, Integer> indexs = new HashMap<>();
 		int indexStar = -1;
 		int indexFind = -1;
+		indexs.clear();
 		// 寻找标签起始位置
 		while ((indexFind = content.indexOf("<", indexStar)) >= 0) {
 			char c = content.substring(indexFind + 1, indexFind + 2).toCharArray()[0];
 			if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) { // 正常标签
 				indexs.put(indexFind, 1);
 			}
-			else { // 注释<!-- 注释 --> <?-- 注释 -->
+			else if (c != '/') { // 注释<!-- 注释 --> <?-- 注释 -->
 				indexs.put(indexFind, 2);
 			}
 			indexStar = indexFind + 1;
 		}
 
-		
+		System.out.println("找到:" + indexs.size());
 		// 寻找标签结束位置
 		indexStar = -1;
 		indexFind = -1;
 		while ((indexFind = content.indexOf("/>", indexStar)) >= 0) {
+			indexFind += 2;
 			indexs.put(indexFind, -1);
 			indexStar = indexFind + 1;
 		}
 		indexStar = -1;
 		indexFind = -1;
 		while ((indexFind = content.indexOf("</", indexStar)) >= 0) {
+			indexFind += 2;
 			indexs.put(indexFind, -2);
 			indexStar = indexFind + 1;
 		}
@@ -146,5 +169,24 @@ public class QXmlTools{
 	}
 
 
+	private static IndexType getLastStart(List<IndexType> indexTypes, int index) {
+		
+		for(int i = index; i < indexTypes.size(); i++) {
+			if(indexTypes.get(i).type > 0) {
+				return indexTypes.get(i);
+			}
+		}
+		return null;
+	}
+	
+	private static IndexType getLastEndStart(List<IndexType> indexTypes, int index) {
+		
+		for(int i = index; i < indexTypes.size(); i++) {
+			if(indexTypes.get(i).type < 0) {
+				return indexTypes.get(i);
+			}
+		}
+		return null;
+	}
 
 }

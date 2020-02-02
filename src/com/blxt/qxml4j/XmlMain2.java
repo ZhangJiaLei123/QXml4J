@@ -1,10 +1,11 @@
-package com.blxt.xml2;
+package com.blxt.qxml4j;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
-import com.blxt.xml2.unit.QXmlTools;
+import com.blxt.quicklog4j.QLog;
+import com.blxt.qxml4j.unit.QXmlTools;
 
 public class XmlMain2 {
 
@@ -22,7 +23,10 @@ public class XmlMain2 {
 	    }
 	    
 	    QElement html = QXmlTools.init(mainContent);
-	    
+	  
+	  //  QElement content = html.getSubElement().get(0).findEleByClass("content");
+	    QElement content = html.getSubElement().get(0);
+	    QLog.i("结果" , content.toString());
 	}
 	
 	
