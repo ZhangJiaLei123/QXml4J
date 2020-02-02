@@ -55,13 +55,13 @@ public class QXmlTools{
 					IndexType indexTypeE = getLastEndStart(indexTypes, i); // 当前结束
 					String _tmp = content.substring(_tmpIdex - 1, _tmpIdex + 1);
 					if(!_tmp.equals("/>"))
-				//	if(indexTypeE.type == -2)
 					{
-						IndexType indexTypeS = getLastStart(indexTypes, i + 1);// 下一个开始
-						//_tmpIdex += element.getLable().length() + 5;
-						if(indexTypeS != null && _tmpIdex < indexTypeS.index ) {
-							String strText =  content.substring(_tmpIdex, indexTypeS.index);
+						int indexEnd = content.indexOf("<", _tmpIdex);
+						_tmpIdex += 1;
+						if(_tmpIdex < indexEnd ) {
+							String strText =  content.substring(_tmpIdex, indexEnd);
 							element.addText(strText);
+							//System.out.println("添加" + strText);
 						}
 					}
 				
@@ -89,11 +89,13 @@ public class QXmlTools{
 				
 				if(indexTypeS != null) {// 将剩余的追加到text
 					int indexS = content.indexOf("<", indexFind);
+					indexFind += 0;
 					if(type == -2) {
 						indexFind += element.getLable().length() + 1;
 					}
 					String _text = content.substring( indexFind, indexS);
 					m_stack_Element.lastElement().addText(_text);
+					//System.out.println("追加" + _text);
 				}
 				//System.out.println("结束:" + element.getLable() + " " + element.getLableClass());
 			}
@@ -148,7 +150,7 @@ public class QXmlTools{
 			indexStar = indexFind + 1;
 		}
 
-		System.out.println("找到:" + indexs.size());
+		//System.out.println("找到:" + indexs.size());
 		// 寻找标签结束位置
 		indexStar = -1;
 		indexFind = -1;
