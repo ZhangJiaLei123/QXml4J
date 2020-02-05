@@ -125,6 +125,7 @@ public class QElement {
 	public QElement findEleByClass(String className) {
 		if(className.equals(lableClass)) {
 			res = this;
+			//System.out.println("找到" + className);
 			return this;
 		}
 		

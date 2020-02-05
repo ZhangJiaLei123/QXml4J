@@ -52,7 +52,7 @@ public class QXmlTools{
 					element.makeData(strData);
 				
 					// 标签的文本内容
-					IndexType indexTypeE = getLastEndStart(indexTypes, i); // 当前结束
+				//	IndexType indexTypeE = getLastEndStart(indexTypes, i); // 当前结束
 					String _tmp = content.substring(_tmpIdex - 1, _tmpIdex + 1);
 					if(!_tmp.equals("/>"))
 					{
@@ -181,6 +181,7 @@ public class QXmlTools{
 		return null;
 	}
 	
+	@SuppressWarnings("unused")
 	private static IndexType getLastEndStart(List<IndexType> indexTypes, int index) {
 		
 		for(int i = index; i < indexTypes.size(); i++) {
