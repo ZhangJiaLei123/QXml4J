@@ -180,16 +180,5 @@ public class QXmlTools{
 		}
 		return null;
 	}
-	
-	@SuppressWarnings("unused")
-	private static IndexType getLastEndStart(List<IndexType> indexTypes, int index) {
-		
-		for(int i = index; i < indexTypes.size(); i++) {
-			if(indexTypes.get(i).type < 0) {
-				return indexTypes.get(i);
-			}
-		}
-		return null;
-	}
-
+	 
 }

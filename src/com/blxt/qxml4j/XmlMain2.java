@@ -11,8 +11,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-
-import com.blxt.quicklog4j.QLog;
+ 
 import com.blxt.qxml4j.unit.QXmlTools;
 
 public class XmlMain2 {
@@ -20,23 +19,16 @@ public class XmlMain2 {
 	public static void main(String[] args) {
 //		File file = new File("E:\\MyComputer\\Desktop\\books - 副本.txt");
 		String mainContent = "";
-//	    if ((file.isFile()) && (file.exists()))
-//	    {
-//	      mainContent = readFile(file, "utf-8");
-//	    }
-//	    else
-//	    {
-//	      System.out.println("文件不存在");
-//	      return;
-//	    }
+ 
 	    mainContent = getUrlString("https://www.17k.com/chapter/2722533/33762471.html", "utf-8");
 //	    System.out.println(mainContent);
 	    
 	    QElement html = QXmlTools.init(mainContent);
 	  
-	    QElement content = html.getSubElement().get(0).findEleByClass("readAreaBox content");
+	    html = html.getSubElement().get(0).getNodeByLable("head");
+	    System.out.println(html.toString());
 	 //   QElement content = html.getSubElement().get(0);
-	    QLog.i("结果" , content.res.toString());
+	 //   QLog.i("结果" , content.res.toString());
 	}
 	
 	public static String getUrlString(String urlStr, String code) {
